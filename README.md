@@ -1,8 +1,33 @@
 # TextureBA2Update
 Fallout 4 Mod Organizer 2 plugin for updating base BA2 texture files with mod textures, big performance boost.
 
+## Install
+Here is how I use this:
+* Grab the source for this plugin and copy it to your MO2-install/plugins folder
+* Install Creation Kit, google on how to do this if you haven't already. Or, you can copy
+  Archive2.exe file and Archive2Interop.dll files from some other location to your MO2 install
+  directory. This is also a setting you can set in the MO2 plugins settings dialog tab.
+
+## Usage
+* Start MO2, starting before the python files are in the plugins directory will
+  cause the plugin to not show up
+* create a new MO2 profile that is a copy of your main profile
+* Switch to the new profile
+* Disable all mods that are not texture update mods, this is easy if you use MO2
+  separators, just uncheck all modules not under your texture update separator.
+* Pull down the plugins menu (labeled "tools" and looks like puzzle pieces) and
+  select the TextureBA2Update tool
+* When the dialog window pops up, all you need to do is click the "Update BA2s"
+  button and wait for a long time for the work to finish.
+
+If you've already used this before and update your texture files, before
+clicking on the "Update BA2s" button, click on the "Enable Textures" button.
+This will rename all of the "DISABLED" textures to the original files allowing
+their use again during the update process.
+
 ## What is does
 This is a simple python based plugin that will perform these tasks:
+
 * Back up the base texture BA2 files from the game directory (if they aren't
   already backed up:
   * Fallout4 - Textures1.ba2

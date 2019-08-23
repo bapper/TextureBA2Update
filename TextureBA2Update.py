@@ -103,6 +103,7 @@ class WorkDialog(QDialog, Ui_TextureBA2MainDialog):
         self.archiveWorkProcess = None
         self.parentWidget = parentWidget
         self.gameDataDir = self.organizer.managedGame().dataDirectory().absolutePath()
+        self.gameDir = self.organizer.managedGame().gameDirectory().absolutePath()
         self.threadPool = QThreadPool()
         self.originalBA2Files = BASE_TEXTURE_FILES[:] # reverse order
         self.canceled = False
@@ -112,10 +113,29 @@ class WorkDialog(QDialog, Ui_TextureBA2MainDialog):
         self.logTextEdit.setReadOnly(True)
         self.progressTextEdit.setReadOnly(True)
         self.ba2File = None
+        self.archive2Path = ""
         self.signals = WorkDialogSignals()
         if (not os.path.exists(BA2_WORK_DIR)):
             os.mkdir(BA2_WORK_DIR)
         self.BackupBaseBA2Files()
+        path = self.organizer.pluginSetting(PLUGIN_NAME, "Archive2.exe-path")
+        if (path == ""):
+            if (os.path.exists("%s/Tools/Archive2/Archive2.exe" % self.gameDir)):
+                path = "%s/Tools/Archive2/Archive2.exe" % self.gameDir
+            elif (os.path.exists("%s/Archive2.exe" % CWD)):
+                path = "%s/Archive2.exe" % CWD
+            elif (os.path.exists("%s/Archive2.exe" % PLUGIN_DIR)):
+                path = "%s/Archive2.exe" % PLUGIN_DIR
+            self.organizer.setPluginSetting(PLUGIN_NAME, "Archive2.exe-path", path)
+
+        if (path != ""):
+            self.archive2Path  = path
+        else:
+            QMessageBox.information(self, self.tr(PLUGIN_NAME), self.tr("The path to Archive2.exe "
+                + "could not be found. Either install Creation Kit or set the path in the plugin "
+                +" settings to an existing Archive2.exe location."))
+            self.enableButton.setEnabled(False)
+            self.updateButton.setEnabled(False)
 
     # Disable the base BA2 files if they are not already renamed. Also removes
     # the non-disabled file if it is there. Not sure if I should re-enable the
@@ -322,8 +342,7 @@ class WorkDialog(QDialog, Ui_TextureBA2MainDialog):
         if (os.path.exists(ba2Path)):
             os.remove(ba2Path)
         texturePath = os.path.join(TEXTURE_WORK_DIR, "textures")
-        archive2path = self.organizer.pluginSetting(PLUGIN_NAME, "Archive2.exe-path")
-        self.archiveWorkProcess.setProgram(archive2path)
+        self.archiveWorkProcess.setProgram(self.archive2path)
         self.archiveWorkProcess.setArguments([texturePath, "-f=DDS", "-c=%s" % ba2Path, "-r=%s" % TEXTURE_WORK_DIR])
         self.archiveWorkProcess.start()
 
@@ -380,7 +399,7 @@ class WorkDialog(QDialog, Ui_TextureBA2MainDialog):
         ba2Path = os.path.join(self.gameDataDir, self.ba2File) + DISABLE_SUFFIX
         self.ProgressOutput("Archive2 extract: %s " % ba2Path)
         self.logTextEdit.clear()
-        self.archiveWorkProcess.setProgram("Archive2.exe")
+        self.archiveWorkProcess.setProgram(self.archive2path)
         self.archiveWorkProcess.setArguments([ba2Path, '-e=%s' % TEXTURE_WORK_DIR])
         self.archiveWorkProcess.start()
 
@@ -469,6 +488,7 @@ class TextureBA2Update(mobase.IPluginTool):
         super(TextureBA2Update, self).__init__()
         self.__parentWidget = None
         self.__organizer = None
+        self.__gameDir = None
 
     def init(self, organizer):
         self.__organizer = organizer
@@ -497,13 +517,8 @@ class TextureBA2Update(mobase.IPluginTool):
         return True
 
     def settings(self):
-        path = ""
-        if (os.path.exists("%s/Archive2.exe" % CWD)):
-            path = "%s/Archive2.exe" % CWD
-        elif (os.path.exists("%s/Archive2.exe" % PLUGIN_DIR)):
-            path = "%s/Archive2.exe" % PLUGIN_DIR
         return [
-            mobase.PluginSetting("Archive2.exe-path", self.__tr("Path to Archive2.exe"), path),
+            mobase.PluginSetting("Archive2.exe-path", self.__tr("Path to Archive2.exe"), ""),
             ]
 
     def displayName(self):
